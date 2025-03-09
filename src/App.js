@@ -67,8 +67,13 @@ export default function App() {
   };
 
   const deleteExpense = async (id) => {
-    await supabase.from("expenses").delete().match({ id });
-    setExpenses(expenses.filter(expense => expense.id !== id));
+    const { error } = await supabase.from("expenses").delete().match({ id });
+    if (error) {
+      setMessage(error.message);
+    } else {
+      setMessage("");
+      setExpenses(expenses.filter(expense => expense.id !== id));
+    }
   };
 
   const startEditing = (expense) => {
