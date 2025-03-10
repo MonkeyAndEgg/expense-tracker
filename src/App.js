@@ -98,7 +98,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen p-4 flex flex-col items-center bg-gray-100">
-      <h1 className="text-2xl font-bold mb-4">Daily Expense Tracker</h1>
+      <h1 className="text-2xl font-bold mb-4">Expense Tracker</h1>
       <div>
       <h2>Login</h2>
       <input
