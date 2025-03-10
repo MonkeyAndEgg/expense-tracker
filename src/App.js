@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const LOGIN_SESSION_KEY = "supabaseSession";
 
 export default function App() {
   const [expenses, setExpenses] = useState([]);
@@ -11,15 +12,21 @@ export default function App() {
   const [description, setDescription] = useState("");
   const [type, setType] = useState("out");
   const [editingExpense, setEditingExpense] = useState(null);
-  const [userId, setUserId] = useState("");
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [session, setSession] = useState(null); 
 
 
   useEffect(() => {
+    loadSessionInfo();
     fetchExpenses();
   }, []);
+
+  const loadSessionInfo = () => {
+    const sessionData = JSON.parse(localStorage.getItem(LOGIN_SESSION_KEY));
+    setSession(sessionData);
+  }
 
   const handleLogin = async () => {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -30,8 +37,10 @@ export default function App() {
     if (error) {
       setMessage(error.message);
     } else {
+      if (data.session) {
+        localStorage.setItem(LOGIN_SESSION_KEY, JSON.stringify(data.session));
+      }
       setMessage('Logged in successfully!');
-      setUserId(data ? data.user.id : "");
       fetchExpenses();
     }
   }
@@ -41,7 +50,8 @@ export default function App() {
     if (error) {
       setMessage(error.message);
     } else {
-      setUserId("");
+      localStorage.setItem(LOGIN_SESSION_KEY, null);
+      setSession(null);
       setMessage("");
       fetchExpenses();
     }
@@ -53,8 +63,8 @@ export default function App() {
   };
 
   const addExpense = async () => {
-    if (!amount || !description) return;
-    const { data, error } = await supabase.from("expenses").insert([{ amount, description, type, user_id: userId }]).select();
+    if (!amount || !description || !session) return;
+    const { data, error } = await supabase.from("expenses").insert([{ amount, description, type, user_id: session.user.id }]).select();
     if (error) {
       setMessage(error.message);
     } else {
